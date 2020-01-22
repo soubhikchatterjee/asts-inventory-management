@@ -23,9 +23,6 @@ module.exports = {
       shopping_center_id: {
         type: Sequelize.INTEGER
       },
-      created_user_id: {
-        type: Sequelize.INTEGER
-      },
       updated_user_id: {
         type: Sequelize.INTEGER
       },

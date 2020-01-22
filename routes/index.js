@@ -15,6 +15,7 @@ module.exports = app => {
   const BASE_URL = "/api/v1";
   app.use(`${BASE_URL}/auth`, require("./auth"));
   app.use(`${BASE_URL}/users`, require("./users"));
+  app.use(`${BASE_URL}/shopping-centers`, require("./shopping-centers"));
   app.use("*", require("./404"));
 
   // Error Middleware

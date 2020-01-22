@@ -14,8 +14,7 @@ router.post("/", [authorize], (req, res) => {
   User.create({
     full_name,
     email,
-    password: bcrypt.hashSync(password, salt),
-    created_user_id: req.user.uid
+    password: bcrypt.hashSync(password, salt)
   });
 
   res.sendStatus(201).send("OK");
