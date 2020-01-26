@@ -2,9 +2,13 @@
 
 const express = require("express");
 const router = express.Router();
-const ShoppingCenter = require("../models").ShoppingCenter;
-const User = require("../models").User;
+const ShoppingCenter = require("../models").shoppingCenter;
+const User = require("../models").user;
 const { authorize } = require("../middlewares/auth");
+const {
+  shoppingCenterValidationMiddleware
+} = require("../middlewares/shopping-centers");
+const Asset = require("../models").asset;
 
 /**
  * Get All Shopping Center data
@@ -18,6 +22,9 @@ router.get("/", [authorize], async (req, res) => {
       {
         model: User,
         attributes: { exclude: ["password"] }
+      },
+      {
+        model: Asset
       }
     ]
   });
@@ -36,6 +43,9 @@ router.get("/:id", [authorize], async (req, res) => {
       {
         model: User,
         attributes: { exclude: ["password"] }
+      },
+      {
+        model: Asset
       }
     ]
   });
@@ -46,38 +56,44 @@ router.get("/:id", [authorize], async (req, res) => {
 /**
  * Create a new Shopping Center data
  */
-router.post("/", [authorize], (req, res) => {
-  const { name, address } = req.body;
+router.post(
+  "/",
+  [authorize, shoppingCenterValidationMiddleware],
+  async (req, res) => {
+    const { name, address, assets } = req.body;
 
-  ShoppingCenter.create({
-    name,
-    address,
-    updated_user_id: req.user.uid
-  });
+    const shoppingCenterObject = await req.user.createShoppingCenter({
+      name,
+      address
+    });
 
-  res.sendStatus(201).send("OK");
-});
+    await shoppingCenterObject.addAssets(assets);
+
+    res.send(201).send("OK");
+  }
+);
 
 /**
- * Update an existing new Shopping Center data
+ * Update an existing Shopping Center data
  */
-router.put("/:id", [authorize], (req, res) => {
-  const { name, address } = req.body;
+router.put(
+  "/:id",
+  [authorize, shoppingCenterValidationMiddleware],
+  async (req, res) => {
+    const { name, address, assets } = req.body;
 
-  ShoppingCenter.update(
-    {
+    const shoppingCenterObject = await ShoppingCenter.findByPk(req.params.id);
+
+    shoppingCenterObject.update({
       name,
       address,
-      updated_user_id: req.user.uid
-    },
-    {
-      where: {
-        id: req.params.id
-      }
-    }
-  );
+      userId: req.user.id
+    });
 
-  res.sendStatus(200).send("OK");
-});
+    await shoppingCenterObject.setAssets(assets);
+
+    res.status(200).send(shoppingCenterObject);
+  }
+);
 
 module.exports = router;

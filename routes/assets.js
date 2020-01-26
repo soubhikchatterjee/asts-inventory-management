@@ -2,35 +2,75 @@
 
 const express = require("express");
 const router = express.Router();
-const Asset = require("../models").Asset;
+const Asset = require("../models").asset;
+const ShoppingCenter = require("../models").shoppingCenter;
 const { authorize } = require("../middlewares/auth");
+const { assetValidationMiddleware } = require("../middlewares/assets");
 
-router.post("/", [authorize], (req, res) => {
+/**
+ * Get All assets data
+ */
+router.get("/", [authorize], async (req, res) => {
+  const offset = Math.abs(+req.query.page - 1) || 0;
+  const data = await Asset.findAll({
+    offset,
+    limit: +process.env.DB_LIMIT,
+    include: [
+      {
+        model: ShoppingCenter
+      }
+    ]
+  });
+  res.json(data);
+});
+
+/**
+ * Get a single asset data
+ */
+router.get("/:id", [authorize], async (req, res) => {
+  const data = await Asset.findOne({
+    where: {
+      id: req.params.id
+    },
+    include: [
+      {
+        model: ShoppingCenter
+      }
+    ]
+  });
+
+  res.json(data);
+});
+
+/**
+ * Create a new asset
+ */
+router.post("/", [authorize, assetValidationMiddleware], async (req, res) => {
   const { name, dimensions, location, status, shopping_center_id } = req.body;
 
-  Asset.create({
+  await req.user.createAsset({
     name,
     dimensions,
     location,
-    status,
-    shopping_center_id,
-    updated_user_id: req.user.uid
+    status
   });
 
-  res.sendStatus(201).send("OK");
+  res.status(201).send("OK");
 });
 
-router.put("/:id", [authorize], (req, res) => {
-  const { name, dimensions, location, status, shopping_center_id } = req.body;
+/**
+ * Update an existing asset
+ */
+router.put("/:id", [authorize, assetValidationMiddleware], async (req, res) => {
+  const { name, dimensions, location, status } = req.body;
 
-  Asset.update(
+  await Asset.update(
     {
       name,
       dimensions,
       location,
       status,
-      shopping_center_id,
-      updated_user_id: req.user.uid
+      userId: req.user.id
     },
     {
       where: {

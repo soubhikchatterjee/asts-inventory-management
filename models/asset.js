@@ -2,21 +2,25 @@
 
 module.exports = (sequelize, DataTypes) => {
   const Asset = sequelize.define(
-    "Asset",
+    "asset",
     {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true
+      },
       name: DataTypes.STRING,
       dimensions: DataTypes.STRING,
       location: DataTypes.STRING,
-      status: DataTypes.STRING,
-      shopping_center_id: DataTypes.INTEGER,
-      updated_user_id: DataTypes.INTEGER
+      status: DataTypes.STRING
     },
     {}
   );
   Asset.associate = function(models) {
-    // associations can be defined here
-    Asset.belongsTo(models.User, {
-      foreignKey: "updated_user_id"
+    Asset.belongsTo(models.user);
+    Asset.belongsToMany(models.shoppingCenter, {
+      through: models.shoppingCenterAsset
     });
   };
   return Asset;

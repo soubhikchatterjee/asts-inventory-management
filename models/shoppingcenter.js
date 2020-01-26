@@ -1,18 +1,25 @@
 "use strict";
+
 module.exports = (sequelize, DataTypes) => {
   const ShoppingCenter = sequelize.define(
-    "ShoppingCenter",
+    "shoppingCenter",
     {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true
+      },
       name: DataTypes.STRING,
-      address: DataTypes.STRING,
-      updated_user_id: DataTypes.INTEGER
+      address: DataTypes.STRING
     },
     {}
   );
   ShoppingCenter.associate = function(models) {
     // associations can be defined here
-    ShoppingCenter.belongsTo(models.User, {
-      foreignKey: "updated_user_id"
+    ShoppingCenter.belongsTo(models.user);
+    ShoppingCenter.belongsToMany(models.asset, {
+      through: models.shoppingCenterAsset
     });
   };
   return ShoppingCenter;
